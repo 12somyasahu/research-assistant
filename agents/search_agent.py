@@ -1,4 +1,3 @@
-
 # Agent 1: The Scout — goes out into the wild internet and brings back raw intel.
 # Powered by Tavily, which is specifically built for AI search (way better than scraping).
 
@@ -10,27 +9,27 @@ from graph.state import ResearchState
 def search_agent(state: ResearchState) -> ResearchState:
     """
     Hits the Tavily search API and dumps raw results into state.
-    Returns up to 7 sources — enough to be thorough, not so many that
-    Agent 2 has a meltdown trying to summarize all of it.
+    Respects the search_depth setting passed in from the UI —
+    'quick' gets 3 sources, 'deep' gets 7.
     """
 
     topic = state["topic"]
+    # pull depth preference out of state — defaults to deep if not set
+    depth = state.get("search_depth", "deep")
+    max_results = 3 if depth == "quick" else 7
 
     # fires off the search, pray the API doesn't rate limit us
     client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
     try:
-        # search_depth="advanced" makes Tavily actually crawl pages, not just
-        # return snippets. Costs more API credits but gives way better results.
         response = client.search(
             query=topic,
             search_depth="advanced",
-            max_results=7,
-            include_answer=True,          # Tavily's own quick-answer — nice bonus
-            include_raw_content=False,    # raw HTML would break everything downstream
+            max_results=max_results,
+            include_answer=True,
+            include_raw_content=False,
         )
 
-        # Pull out the results list — each item has: title, url, content, score
         results = response.get("results", [])
 
         # Tavily sometimes returns an "answer" field — a quick summary of results.

@@ -32,5 +32,8 @@ class ResearchState(TypedDict):
     # Tracks which step we're on — useful for the UI progress bar
     current_step: str
 
+    # 'quick' = 3 sources, 'deep' = 7 sources — set from the UI
+    search_depth: str
+
     # If anything explodes, the error lands here instead of crashing the whole app
     error: Optional[str]

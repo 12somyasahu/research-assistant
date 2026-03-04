@@ -1,3 +1,5 @@
+# The main Streamlit UI. This is what users actually see and interact with.
+# Everything visual lives here — the graph logic stays in graph/ where it belongs.
 
 import os
 import sys
@@ -13,10 +15,10 @@ st.set_page_config(
 )
 
 # ── Load .env first so keys are in os.environ ────────────────────────────────
-from utils.helpers import load_env, check_api_keys, count_words, extract_source_urls
+from utils.helpers import load_env, check_api_keys, count_words, reading_time, extract_source_urls
 load_env()
 
-
+# ── Streamlit Cloud secret injection (only runs on Streamlit Cloud) ────────
 # We check if the secrets FILE actually exists on disk before ever touching
 # st.secrets — this prevents Streamlit from rendering the red error banner locally.
 import pathlib
@@ -173,7 +175,17 @@ Or add them in Streamlit Cloud → App Settings → Secrets
             st.session_state["prefill_topic"] = topic
 
     st.markdown("---")
-    st.caption("Built with LangGraph + Gemini + Tavily + Groq")
+    st.markdown("### ⚡ Research Depth")
+    search_depth = st.radio(
+        "How deep should we go?",
+        options=["quick", "deep"],
+        format_func=lambda x: "🚀 Quick  (3 sources, ~20s)" if x == "quick" else "🔬 Deep  (7 sources, ~45s)",
+        index=1,
+        key="search_depth",
+    )
+
+    st.markdown("---")
+    st.caption("Built with LangGraph + Groq + Tavily")
     st.caption("Built as a portfolio project by an engineering student who spent way too many nights debugging this")
 
 
@@ -272,7 +284,7 @@ if run_button and topic.strip():
     # Actually run the full pipeline (this is the real work)
     with st.spinner(""):
         try:
-            result = run_research(topic.strip())
+            result = run_research(topic.strip(), search_depth=st.session_state.get('search_depth', 'deep'))
         except Exception as e:
             st.error(f"Pipeline crashed: {str(e)}")
             st.stop()
@@ -294,11 +306,13 @@ if "report_state" in st.session_state:
     # Report stats row
     report_text = result.get("final_report", "")
     word_count = count_words(report_text)
+    read_time = reading_time(report_text)
     source_count = len([r for r in result.get("search_results", []) if r.get("url", "N/A") != "N/A"])
     fact_count = len(result.get("fact_check_report", []))
 
     st.markdown(
         f'<span class="stat-pill">📄 {word_count} words</span>'
+        f'<span class="stat-pill">⏱️ {read_time} min read</span>'
         f'<span class="stat-pill">🔗 {source_count} sources</span>'
         f'<span class="stat-pill">✅ {fact_count} fact-checks</span>',
         unsafe_allow_html=True
@@ -314,12 +328,30 @@ if "report_state" in st.session_state:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Download button — always useful for a portfolio project
-        st.download_button(
-            label="⬇️ Download Report (.md)",
-            data=result.get("final_report", ""),
-            file_name=f"research_{result.get('topic', 'report').replace(' ', '_')[:30]}.md",
-            mime="text/markdown",
-        )
+        dl_col, share_col = st.columns([1, 1])
+
+        with dl_col:
+            st.download_button(
+                label="⬇️ Download Report (.md)",
+                data=result.get("final_report", ""),
+                file_name=f"research_{result.get('topic', 'report').replace(' ', '_')[:30]}.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+
+        with share_col:
+            # copy to clipboard via JS injection — no external library needed
+            report_escaped = result.get("final_report", "").replace("`", "\`").replace("\n", "\\n")
+            st.markdown(
+                f"""<button onclick="navigator.clipboard.writeText(`{report_escaped}`).then(() => {{
+                    this.innerText = '✅ Copied!';
+                    setTimeout(() => this.innerText = '📋 Copy to Clipboard', 2000);
+                }})" style="width:100%;padding:0.45rem 1rem;background:#1e1e2e;color:#fff;
+                border:1px solid #555;border-radius:8px;cursor:pointer;font-size:0.9rem;">
+                📋 Copy to Clipboard
+                </button>""",
+                unsafe_allow_html=True,
+            )
 
     with tab2:
         st.markdown("### Fact-Check Report")

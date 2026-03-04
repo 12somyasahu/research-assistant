@@ -1,8 +1,7 @@
-
 # This is the control tower. LangGraph wires all four agents together
 # into a directed graph — each node is an agent, each edge is a handoff.
 #
-
+# Flow: search → summarize → fact_check → write → END
 #
 # We also add conditional edges so if search totally fails, we skip
 # straight to the writer who generates a "sorry, nothing found" report.
@@ -74,7 +73,7 @@ def build_research_graph() -> StateGraph:
 research_graph = build_research_graph()
 
 
-def run_research(topic: str) -> ResearchState:
+def run_research(topic: str, search_depth: str = "deep") -> ResearchState:
     """
     Main entry point. Pass in a topic string, get back a fully populated
     ResearchState with the final report inside.
@@ -91,6 +90,7 @@ def run_research(topic: str) -> ResearchState:
         "fact_check_report": [],
         "final_report": "",
         "current_step": "starting",
+        "search_depth": search_depth,
         "error": None,
     }
 
