@@ -1,219 +1,183 @@
 # 🔬 Multi-Agent Research Assistant
 
-> **4 AI agents collaborate to research any topic — search, summarize, fact-check, then write a polished report.**
+> Four AI agents walk into a bar. One searches the web, one summarizes, one fact-checks, and one writes a report. No punchline — it actually works.
 
-Built with **LangGraph**, **Google Gemini**, **Tavily Search**, and **Streamlit**.
-
----
-
-## 🎬 What It Does
-
-You type a topic. Four specialized AI agents kick in, each doing one job:
-
-```
-User Input → [Search Agent] → [Summarizer] → [Fact-Checker] → [Writer] → Final Report
-```
-
-| Agent | Tool | Job |
-|---|---|---|
-| 🔍 **Search Agent** | Tavily API | Fetches 7 live web sources |
-| 📝 **Summarizer Agent** | Gemini 1.5 Flash | Synthesizes raw results into key findings |
-| ✅ **Fact-Checker Agent** | Gemini 1.5 Flash | Cross-checks claims against sources |
-| ✍️ **Writer Agent** | Gemini 1.5 Flash | Compiles everything into a clean Markdown report |
+![Python](https://img.shields.io/badge/Python-3.9+-blue?style=flat-square&logo=python)
+![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple?style=flat-square)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red?style=flat-square&logo=streamlit)
+![Groq](https://img.shields.io/badge/Groq-Llama_3.3-orange?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
-## 📁 Project Structure
+## What Is This?
+
+You type a topic. Four specialized AI agents kick in — each doing exactly one job — and hand you back a structured, fact-checked research report in under 60 seconds.
+
+No hallucination soup. No single monolithic prompt. Just a clean pipeline where every agent is accountable for its own step.
+
+```
+User Input
+    │
+    ▼
+🔍 Search Agent      → pulls 7 live sources from the web via Tavily
+    │
+    ▼
+📝 Summarizer Agent  → synthesizes raw results into structured findings
+    │
+    ▼
+✅ Fact-Checker Agent → cross-references every claim against original sources
+    │
+    ▼
+✍️  Writer Agent      → compiles everything into a clean, readable report
+    │
+    ▼
+Final Report (Markdown, downloadable)
+```
+
+---
+
+## Tech Stack
+
+| Layer | Tool |
+|---|---|
+| Agent orchestration | LangGraph |
+| LLM | Groq — Llama 3.3 70B |
+| Web search | Tavily Search API |
+| Frontend | Streamlit |
+| State management | LangGraph TypedDict state |
+
+All free tier. No credit card required to run this locally.
+
+---
+
+## Project Structure
 
 ```
 research-assistant/
 │
-├── app.py                     # Streamlit UI (the thing users see)
-├── requirements.txt           # All dependencies
-├── .env.example               # Copy this to .env and add your keys
+├── app.py                    # Streamlit UI
+├── requirements.txt
+├── .env.example              # copy to .env and add your keys
 ├── .gitignore
+├── README.md
 │
-├── agents/                    # One file per agent
-│   ├── search_agent.py        # Agent 1: Tavily search
-│   ├── summarizer_agent.py    # Agent 2: LLM summarization
-│   ├── fact_checker_agent.py  # Agent 3: LLM fact-checking
-│   └── writer_agent.py        # Agent 4: LLM report writing
+├── agents/
+│   ├── search_agent.py       # Agent 1 — Tavily web search
+│   ├── summarizer_agent.py   # Agent 2 — LLM summarization
+│   ├── fact_checker_agent.py # Agent 3 — LLM fact-checking
+│   └── writer_agent.py       # Agent 4 — LLM report writing
 │
 ├── graph/
-│   ├── state.py               # Shared state schema (the "whiteboard")
-│   └── research_graph.py      # LangGraph pipeline wiring all agents together
+│   ├── state.py              # shared state schema (the "whiteboard")
+│   └── research_graph.py     # LangGraph pipeline connecting all agents
 │
 └── utils/
-    └── helpers.py             # Small utility functions
+    └── helpers.py            # utility functions
 ```
 
 ---
 
-## ⚙️ How LangGraph Works Here
+## Getting Started
 
-LangGraph is a library for building **stateful multi-agent pipelines** as directed graphs.
-
-```
-              ┌─────────────┐
-              │  START      │
-              └──────┬──────┘
-                     │
-              ┌──────▼──────┐
-              │ search_agent│  ← Agent 1
-              └──────┬──────┘
-                     │  (conditional: if search fails, skip to write)
-              ┌──────▼──────┐
-              │ summarizer  │  ← Agent 2
-              └──────┬──────┘
-                     │
-              ┌──────▼──────┐
-              │ fact_checker│  ← Agent 3
-              └──────┬──────┘
-                     │
-              ┌──────▼──────┐
-              │   writer    │  ← Agent 4
-              └──────┬──────┘
-                     │
-               ┌─────▼─────┐
-               │    END    │
-               └───────────┘
-```
-
-- Each **node** in the graph is an agent function
-- Each agent **reads** from shared state, does its work, and **writes** its output back
-- Agents never call each other directly — LangGraph handles the routing
-- Conditional edges mean failures are handled gracefully, not with crashes
-
----
-
-## 🚀 Running Locally
-
-### Step 1 — Clone and install
+### 1. Clone and install
 
 ```bash
-git clone https://github.com/12somyasahu/research-assistant.git
+git clone https://github.com/yourusername/research-assistant.git
 cd research-assistant
 
 python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
 
 pip install -r requirements.txt
 ```
 
-### Step 2 — Get your API keys (all free tier)
+### 2. Get free API keys
 
-**Google Gemini API** (free)
-1. Go to [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
+| Key | Where to get it | Free tier |
+|---|---|---|
+| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) | 14,400 req/day |
+| `TAVILY_API_KEY` | [app.tavily.com](https://app.tavily.com) | 1,000 req/month |
 
-**Tavily Search API** (free tier = 1,000 requests/month)
-1. Go to [https://app.tavily.com](https://app.tavily.com)
-2. Create an account
-3. Your API key is on the dashboard
-
-### Step 3 — Configure environment
+### 3. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Open `.env` and fill in your keys:
+
 ```
-GOOGLE_API_KEY=your_actual_key_here
-TAVILY_API_KEY=your_actual_key_here
+GROQ_API_KEY=gsk_your_key_here
+TAVILY_API_KEY=tvly-your_key_here
 ```
 
-### Step 4 — Run
+### 4. Run
 
 ```bash
 streamlit run app.py
 ```
 
-App opens at `http://localhost:8501`
+Opens at `http://localhost:8501`
 
 ---
 
-## ☁️ Deploy Free on Streamlit Cloud
+## How LangGraph Connects Everything
 
-### Step 1 — Push to GitHub
+LangGraph treats each agent as a **node** in a directed graph. Agents don't call each other — they all read from and write to a shared `ResearchState` object that gets passed along the pipeline.
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/yourusername/research-assistant.git
-git push -u origin main
+```python
+# graph/state.py — the shared "whiteboard" every agent reads and writes
+class ResearchState(TypedDict):
+    topic: str
+    search_results: List[dict]
+    summary: str
+    fact_check_report: List[str]
+    final_report: str
+    current_step: str
+    error: Optional[str]
 ```
 
-> ⚠️ Make sure `.env` and `.streamlit/secrets.toml` are in your `.gitignore` — **never push API keys**
-
-### Step 2 — Deploy on Streamlit Cloud
-
-1. Go to [https://share.streamlit.io](https://share.streamlit.io)
-2. Sign in with GitHub
-3. Click **"New app"**
-4. Select your repo, set main file to `app.py`
-5. Click **"Advanced settings"** → **"Secrets"**
-6. Paste this (with your real keys):
-   ```toml
-   GOOGLE_API_KEY = "your_google_gemini_api_key_here"
-   TAVILY_API_KEY = "your_tavily_api_key_here"
-   ```
-7. Click **"Deploy"**
-
-That's it. Free hosting, auto-deploys on push.
+This design means:
+- Agents are fully independent and testable in isolation
+- Any agent can fail gracefully without crashing the whole pipeline
+- Adding a new agent is as simple as adding a new node and edge
 
 ---
 
-## 🔧 Tech Stack
+## Deploying Free on Streamlit Cloud
 
-| Layer | Tech |
-|---|---|
-| Multi-agent orchestration | LangGraph 0.2 |
-| LLM | Google Gemini 1.5 Flash |
-| Web search | Tavily Search API |
-| Frontend | Streamlit |
-| State management | LangGraph TypedDict state |
+1. Push your repo to GitHub (`.env` is in `.gitignore` — your keys are safe)
+2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app** → pick your repo
+3. Set main file to `app.py`
+4. Go to **Advanced settings → Secrets** and paste:
 
----
+```toml
+GROQ_API_KEY = "gsk_your_key_here"
+TAVILY_API_KEY = "tvly-your_key_here"
+```
 
-## 📈 How to Extend This
-
-Some ideas if you want to level this up:
-
-- **Add streaming**: Use `graph.stream()` instead of `graph.invoke()` to show real-time output
-- **Add memory**: Use LangGraph's checkpointer to remember past research sessions
-- **Add more agents**: A `Citation Agent` that formats sources in APA/MLA, or a `Critique Agent` that pokes holes in the report
-- **Switch LLMs**: Swap Gemini for Groq (Llama 3 — free and fast) by changing the LLM class
-- **Export to PDF**: Add `reportlab` or `weasyprint` to generate downloadable PDFs
+5. Hit **Deploy** — you get a public URL for free
 
 ---
 
-## 🐛 Common Issues
+## Extending This
 
-**"Missing API keys" error**
-- Make sure your `.env` file exists and has the right variable names
-- On Streamlit Cloud, check the Secrets section in App Settings
+Some ideas if you want to take this further:
 
-**LangGraph import errors**
-- Run `pip install -r requirements.txt` again
-- Make sure you're in your virtual environment (`source venv/bin/activate`)
-
-**Search returns 0 results**
-- Check your Tavily API key is valid
-- You may have hit the free tier limit (1000 req/month)
-
-**Gemini rate limit errors**
-- The free tier has 15 requests/minute. If you're hammering it, slow down.
+- **Streaming output** — swap `graph.invoke()` for `graph.stream()` to show token-by-token output
+- **More agents** — add a Citation Agent (APA/MLA formatting) or a Critique Agent that pokes holes in the report
+- **Persistent memory** — use LangGraph's built-in checkpointer to save research sessions
+- **Different LLMs** — swap Groq for any LangChain-compatible model (OpenAI, Anthropic, Mistral)
+- **PDF export** — add `reportlab` to generate downloadable PDFs instead of just Markdown
 
 ---
 
-## 📝 License
+## License
 
-MIT — use this however you want, just don't blame me if your API credits run out.
+MIT — use it, fork it, put it on your resume.
 
 ---
 
-*Built as a portfolio project to demonstrate multi-agent AI system design with LangGraph.*
+*Built to demonstrate multi-agent AI system design using LangGraph and modern LLM tooling.*
