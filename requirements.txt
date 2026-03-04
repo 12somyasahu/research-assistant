@@ -16,4 +16,4 @@ pydantic==2.10.4
 
 # Nice-to-haves for display
 rich==13.9.4
-langchain-groq==0.2.3
+langchain-groq
