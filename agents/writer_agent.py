@@ -8,12 +8,15 @@ from datetime import datetime
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from graph.state import ResearchState
+from utils.helpers import load_env
+
+load_env()
 
 
 # Slightly higher temperature for the writer — we want prose that flows,
 # not robotic bullet points that sound like they were written by a terms-of-service doc.
 llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
+    model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
     api_key=os.getenv("GROQ_API_KEY"),
     temperature=0.5,
 )

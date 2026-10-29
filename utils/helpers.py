@@ -3,12 +3,17 @@
 # Classic "miscellaneous" file that every project eventually needs.
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 
 def load_env():
     """Load .env file. Call this once at app startup."""
-    load_dotenv()
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+    else:
+        load_dotenv()
 
 
 def check_api_keys() -> tuple[bool, list[str]]:

@@ -6,12 +6,15 @@ import os
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from graph.state import ResearchState
+from utils.helpers import load_env
+
+load_env()
 
 
 # Initialize the LLM once at module level so we're not re-creating it on every call.
 # llama3-70b on Groq — free, fast, and doesn't randomly reject our requests
 llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
+    model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
     api_key=os.getenv("GROQ_API_KEY"),
     temperature=0.3,   # low temp = more focused, less hallucination-y
 )

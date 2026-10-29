@@ -156,9 +156,9 @@ Or add them in Streamlit Cloud → App Settings → Secrets
 | Agent | Model |
 |-------|------|
 | 🔍 Search | Tavily API |
-| 📝 Summarizer | Groq (Llama 3.3) |
-| ✅ Fact-Checker | Groq (Llama 3.3) |
-| ✍️ Writer | Groq (Llama 3.3) |
+| 📝 Summarizer | Groq (GPT-OSS 120B) |
+| ✅ Fact-Checker | Groq (GPT-OSS 120B) |
+| ✍️ Writer | Groq (GPT-OSS 120B) |
     """)
 
     st.markdown("---")

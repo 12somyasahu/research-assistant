@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9+-blue?style=flat-square&logo=python)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple?style=flat-square)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red?style=flat-square&logo=streamlit)
-![Groq](https://img.shields.io/badge/Groq-Llama_3.3-orange?style=flat-square)
+![Groq](https://img.shields.io/badge/Groq-GPT--OSS_120B-orange?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
@@ -42,7 +42,7 @@ Final Report (Markdown, downloadable)
 | Layer | Tool |
 |---|---|
 | Agent orchestration | LangGraph |
-| LLM | Groq — Llama 3.3 70B |
+| LLM | Groq — GPT-OSS 120B |
 | Web search | Tavily Search API |
 | Frontend | Streamlit |
 | State management | LangGraph TypedDict state |
