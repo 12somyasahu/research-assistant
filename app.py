@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import pathlib
 import streamlit as st
 
 # ── Page config — must be the VERY FIRST Streamlit call, no exceptions ──────
@@ -19,10 +20,6 @@ from utils.helpers import load_env, check_api_keys, count_words, reading_time, e
 load_env()
 
 # ── Streamlit Cloud secret injection (only runs on Streamlit Cloud) ────────
-# We check if the secrets FILE actually exists on disk before ever touching
-# st.secrets — this prevents Streamlit from rendering the red error banner locally.
-import pathlib
-
 _secrets_paths = [
     pathlib.Path.home() / ".streamlit" / "secrets.toml",
     pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml",
@@ -37,94 +34,394 @@ if any(p.exists() for p in _secrets_paths):
         pass
 
 
-
-# ── Custom CSS — because default Streamlit looks like it's from 2015 ────────
+# ── Premium Custom CSS & Typography ──────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Main content area */
-    .main { padding-top: 1rem; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-    /* The big glowing title */
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* Main container spacing & ambient glow */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+        max-width: 1200px;
+    }
+
+    /* Ambient background gradient effect */
+    .stApp {
+        background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), #0b0f19;
+        color: #f1f5f9;
+    }
+
+    /* Header & Badge */
+    .hero-container {
+        text-align: center;
+        margin-bottom: 2.2rem;
+    }
+
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.9rem;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #a5b4fc;
+        letter-spacing: 0.02em;
+        margin-bottom: 1rem;
+        backdrop-filter: blur(8px);
+    }
+
     .hero-title {
-        font-size: 2.8rem;
+        font-size: 3rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        background: linear-gradient(135deg, #ffffff 15%, #cbd5e1 50%, #818cf8 80%, #c084fc 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        text-align: center;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.6rem;
     }
 
     .hero-subtitle {
-        text-align: center;
-        color: #888;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        font-weight: 400;
+        max-width: 680px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* Search & Input styling */
+    .stTextInput > div > div > input {
         font-size: 1.05rem;
-        margin-bottom: 2rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: 12px;
+        background: rgba(17, 24, 39, 0.75) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #f8fafc !important;
+        transition: all 0.25s ease;
+        backdrop-filter: blur(12px);
+    }
+
+    .stTextInput > div > div > input:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.65rem 1.25rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+        color: #ffffff !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+    }
+
+    .stButton > button:not([kind="primary"]) {
+        background: rgba(30, 41, 59, 0.6) !important;
+        color: #cbd5e1 !important;
+    }
+
+    .stButton > button:not([kind="primary"]):hover {
+        background: rgba(51, 65, 85, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.2);
     }
 
     /* Agent progress cards */
     .agent-card {
-        background: #1e1e2e;
-        border: 1px solid #333;
-        border-radius: 12px;
-        padding: 1rem 1.2rem;
-        margin: 0.4rem 0;
+        background: rgba(17, 24, 39, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 0.9rem 1.2rem;
+        margin: 0.5rem 0;
         display: flex;
         align-items: center;
-        gap: 0.8rem;
-        transition: border-color 0.3s ease;
+        justify-content: space-between;
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
     }
 
-    .agent-card.active  { border-color: #667eea; background: #1a1a35; }
-    .agent-card.done    { border-color: #22c55e; background: #0f1f14; }
-    .agent-card.waiting { opacity: 0.45; }
+    .agent-card-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .agent-icon-box {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .agent-name {
+        font-weight: 600;
+        font-size: 0.98rem;
+        color: #f1f5f9;
+    }
+
+    .agent-desc {
+        color: #94a3b8;
+        font-size: 0.84rem;
+        margin-top: 0.15rem;
+    }
+
+    .agent-card.active {
+        border-color: rgba(99, 102, 241, 0.6);
+        background: rgba(99, 102, 241, 0.08);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.18);
+    }
+
+    .agent-card.done {
+        border-color: rgba(16, 185, 129, 0.4);
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .agent-card.waiting {
+        opacity: 0.45;
+    }
+
+    .status-badge {
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 0.3rem 0.75rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        letter-spacing: 0.02em;
+    }
+
+    .status-done {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-active {
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .status-waiting {
+        background: rgba(148, 163, 184, 0.1);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #818cf8;
+        box-shadow: 0 0 8px #818cf8;
+        animation: pulseAnimation 1.5s infinite;
+    }
+
+    @keyframes pulseAnimation {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.3); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
 
     /* Report container */
     .report-container {
-        background: #0d0d1a;
-        border: 1px solid #2a2a4a;
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 16px;
-        padding: 2rem;
-        margin-top: 1rem;
+        padding: 2.5rem;
+        margin-top: 1.2rem;
+        backdrop-filter: blur(14px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        line-height: 1.75;
+        font-size: 1rem;
+        color: #e2e8f0;
     }
+
+    .report-container h1, .report-container h2, .report-container h3 {
+        color: #f8fafc;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-top: 1.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .report-container h1 { font-size: 1.9rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.6rem; }
+    .report-container h2 { font-size: 1.4rem; color: #a5b4fc; }
+    .report-container h3 { font-size: 1.15rem; color: #cbd5e1; }
 
     /* Stat pills */
     .stat-pill {
-        display: inline-block;
-        background: #1e1e2e;
-        border: 1px solid #333;
-        border-radius: 20px;
-        padding: 0.3rem 0.9rem;
-        font-size: 0.85rem;
-        margin-right: 0.5rem;
-        color: #aaa;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        padding: 0.35rem 0.95rem;
+        font-size: 0.84rem;
+        font-weight: 500;
+        margin-right: 0.6rem;
+        color: #cbd5e1;
+        font-family: 'JetBrains Mono', monospace;
     }
 
     /* Source link cards */
     .source-card {
-        background: #1a1a2e;
-        border-left: 3px solid #667eea;
+        background: rgba(30, 41, 59, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-left: 3px solid #6366f1;
+        border-radius: 10px;
+        padding: 0.8rem 1.2rem;
+        margin: 0.5rem 0;
+        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.2s ease;
+    }
+
+    .source-card:hover {
+        background: rgba(30, 41, 59, 0.75);
+        border-color: rgba(99, 102, 241, 0.4);
+        transform: translateX(4px);
+    }
+
+    .source-card a {
+        color: #a5b4fc !important;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .source-card a:hover {
+        text-decoration: underline;
+    }
+
+    /* Fact check cards */
+    .fact-card {
+        background: rgba(30, 41, 59, 0.4);
+        border-radius: 10px;
+        padding: 0.85rem 1.1rem;
+        margin: 0.6rem 0;
+        font-size: 0.92rem;
+        line-height: 1.55;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .fact-card.fact-verified {
+        border-left: 4px solid #10b981;
+        background: rgba(16, 185, 129, 0.06);
+    }
+
+    .fact-card.fact-uncertain {
+        border-left: 4px solid #f59e0b;
+        background: rgba(245, 158, 11, 0.06);
+    }
+
+    .fact-card.fact-disputed {
+        border-left: 4px solid #ef4444;
+        background: rgba(239, 68, 68, 0.06);
+    }
+
+    /* Empty state feature cards */
+    .feature-card {
+        background: rgba(17, 24, 39, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 1.4rem;
+        text-align: left;
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .feature-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+    }
+
+    .feature-icon {
+        font-size: 1.6rem;
+    }
+
+    .feature-step {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.12);
+        padding: 0.2rem 0.55rem;
         border-radius: 6px;
-        padding: 0.6rem 1rem;
-        margin: 0.4rem 0;
-        font-size: 0.9rem;
     }
 
-    /* Fact-check item styling */
-    .fact-verified  { color: #4ade80; }
-    .fact-uncertain { color: #facc15; }
-    .fact-disputed  { color: #f87171; }
+    .feature-title {
+        font-size: 1.02rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-bottom: 0.35rem;
+    }
 
-    /* Hide Streamlit's default footer */
+    .feature-desc {
+        color: #94a3b8;
+        font-size: 0.84rem;
+        line-height: 1.5;
+    }
+
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        color: #94a3b8;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: #a5b4fc !important;
+        border-bottom-color: #6366f1 !important;
+    }
+
+    /* Hide Streamlit default footer */
     footer { visibility: hidden; }
-
-    /* Make the text input bigger */
-    .stTextInput > div > div > input {
-        font-size: 1.1rem;
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -170,9 +467,9 @@ Or add them in Streamlit Cloud → App Settings → Secrets
         "How do large language models work",
         "The economics of electric vehicles",
     ]
-    for topic in example_topics:
-        if st.button(f"→ {topic}", key=f"example_{topic}", use_container_width=True):
-            st.session_state["prefill_topic"] = topic
+    for ex_topic in example_topics:
+        if st.button(f"→ {ex_topic}", key=f"example_{ex_topic}", use_container_width=True):
+            st.session_state["prefill_topic"] = ex_topic
 
     st.markdown("---")
     st.markdown("### ⚡ Research Depth")
@@ -189,12 +486,14 @@ Or add them in Streamlit Cloud → App Settings → Secrets
     st.caption("Built as a portfolio project by an engineering student who spent way too many nights debugging this")
 
 
-# ── Main content ─────────────────────────────────────────────────────────────
-st.markdown('<h1 class="hero-title">🔬 Multi-Agent Research Assistant</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="hero-subtitle">4 AI agents collaborate to research any topic — search, summarize, fact-check, then write a clean report</p>',
-    unsafe_allow_html=True
-)
+# ── Main content Hero ────────────────────────────────────────────────────────
+st.markdown("""
+<div class="hero-container">
+    <div class="badge-pill">✨ Autonomous Multi-Agent Intelligence</div>
+    <h1 class="hero-title">Multi-Agent Research Assistant</h1>
+    <p class="hero-subtitle">4 specialized AI agents collaborate sequentially to query live sources, synthesize findings, verify claims, and produce an executive report.</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Topic input — pre-fill if user clicked an example
 default_topic = st.session_state.get("prefill_topic", "")
@@ -202,10 +501,11 @@ topic = st.text_input(
     "What do you want to research?",
     value=default_topic,
     placeholder="e.g. How does CRISPR gene editing work?",
-    key="topic_input"
+    key="topic_input",
+    label_visibility="collapsed"
 )
 
-col1, col2, col3 = st.columns([1, 1, 3])
+col1, col2, col3 = st.columns([1.2, 1, 3])
 with col1:
     run_button = st.button("🚀 Start Research", type="primary", use_container_width=True, disabled=not api_ok)
 with col2:
@@ -225,10 +525,10 @@ def show_agent_progress(current_step: str):
     Updates based on the current_step field in the state.
     """
     agents = [
-        ("🔍", "Search Agent",      "Scanning the web with Tavily",         "search_complete"),
-        ("📝", "Summarizer Agent",  "Synthesizing raw results with Groq", "summarize_complete"),
-        ("✅", "Fact-Checker Agent","Cross-checking claims against sources", "fact_check_complete"),
-        ("✍️", "Writer Agent",      "Composing the final report",           "complete"),
+        ("🔍", "Search Agent",       "Scanning the web with Tavily",       "search_complete"),
+        ("📝", "Summarizer Agent",   "Synthesizing raw results with Groq", "summarize_complete"),
+        ("✅", "Fact-Checker Agent", "Cross-checking claims against sources", "fact_check_complete"),
+        ("✍️", "Writer Agent",       "Composing the final report",         "complete"),
     ]
 
     step_order = ["starting", "search_complete", "summarize_complete", "fact_check_complete", "complete"]
@@ -239,19 +539,22 @@ def show_agent_progress(current_step: str):
 
         if current_idx >= done_idx:
             status = "done"
-            status_icon = "✅"
+            status_badge = '<span class="status-badge status-done">Completed ✓</span>'
         elif current_idx == done_idx - 1:
             status = "active"
-            status_icon = "⏳"
+            status_badge = '<span class="status-badge status-active"><span class="pulse-dot"></span> Processing</span>'
         else:
             status = "waiting"
-            status_icon = "⬜"
+            status_badge = '<span class="status-badge status-waiting">Queued</span>'
 
         st.markdown(
             f'<div class="agent-card {status}">'
-            f'<span style="font-size:1.4rem">{status_icon}</span>'
-            f'<div><strong>{icon} {name}</strong><br>'
-            f'<span style="color:#888;font-size:0.85rem">{desc}</span></div>'
+            f'<div class="agent-card-left">'
+            f'<div class="agent-icon-box">{icon}</div>'
+            f'<div><div class="agent-name">{name}</div>'
+            f'<div class="agent-desc">{desc}</div></div>'
+            f'</div>'
+            f'{status_badge}'
             f'</div>',
             unsafe_allow_html=True
         )
@@ -269,11 +572,6 @@ if run_button and topic.strip():
 
     progress_placeholder = st.empty()
     status_text = st.empty()
-
-    # Manually tick through steps so the UI shows live progress.
-    # We fake a small delay between visual updates so it doesn't
-    # just flash all-green instantly — users want to SEE the agents working.
-    # spending 2 hours on UX polish was NOT in the plan, but here we are
 
     with progress_placeholder.container():
         show_agent_progress("starting")
@@ -327,7 +625,8 @@ if "report_state" in st.session_state:
         st.markdown(result.get("final_report", "No report generated."))
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Download button — always useful for a portfolio project
+        st.markdown("<br>", unsafe_allow_html=True)
+        # Download button & copy button
         dl_col, share_col = st.columns([1, 1])
 
         with dl_col:
@@ -340,14 +639,13 @@ if "report_state" in st.session_state:
             )
 
         with share_col:
-            # copy to clipboard via JS injection — no external library needed
             report_escaped = result.get("final_report", "").replace("`", "\`").replace("\n", "\\n")
             st.markdown(
                 f"""<button onclick="navigator.clipboard.writeText(`{report_escaped}`).then(() => {{
                     this.innerText = '✅ Copied!';
                     setTimeout(() => this.innerText = '📋 Copy to Clipboard', 2000);
-                }})" style="width:100%;padding:0.45rem 1rem;background:#1e1e2e;color:#fff;
-                border:1px solid #555;border-radius:8px;cursor:pointer;font-size:0.9rem;">
+                }})" style="width:100%;padding:0.65rem 1rem;background:rgba(30,41,59,0.7);color:#f1f5f9;
+                border:1px solid rgba(255,255,255,0.12);border-radius:10px;cursor:pointer;font-size:0.95rem;font-weight:600;transition:all 0.2s ease;">
                 📋 Copy to Clipboard
                 </button>""",
                 unsafe_allow_html=True,
@@ -360,15 +658,14 @@ if "report_state" in st.session_state:
         findings = result.get("fact_check_report", ["No fact-check data available."])
 
         for finding in findings:
-            # Color-code by verdict emoji
             if "✅" in finding or "VERIFIED" in finding.upper():
-                st.markdown(f'<p class="fact-verified">{finding}</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="fact-card fact-verified">{finding}</div>', unsafe_allow_html=True)
             elif "⚠️" in finding or "UNCERTAIN" in finding.upper():
-                st.markdown(f'<p class="fact-uncertain">{finding}</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="fact-card fact-uncertain">{finding}</div>', unsafe_allow_html=True)
             elif "❌" in finding or "DISPUTED" in finding.upper():
-                st.markdown(f'<p class="fact-disputed">{finding}</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="fact-card fact-disputed">{finding}</div>', unsafe_allow_html=True)
             else:
-                st.markdown(finding)
+                st.markdown(f'<div class="fact-card">{finding}</div>', unsafe_allow_html=True)
 
     with tab3:
         st.markdown("### Sources Consulted")
@@ -378,7 +675,8 @@ if "report_state" in st.session_state:
             for i, source in enumerate(sources, 1):
                 st.markdown(
                     f'<div class="source-card">'
-                    f'<strong>{i}.</strong> <a href="{source["url"]}" target="_blank">{source["title"]}</a>'
+                    f'<div><strong>{i}.</strong> <a href="{source["url"]}" target="_blank">{source["title"]}</a></div>'
+                    f'<span style="color:#64748b;font-size:0.8rem">↗ External</span>'
                     f'</div>',
                     unsafe_allow_html=True
                 )
@@ -403,21 +701,24 @@ elif not run_button:
     # Empty state — show what the pipeline does
     st.markdown("---")
     col1, col2, col3, col4 = st.columns(4)
-    for col, (icon, title, desc) in zip(
+    for col, (step_num, icon, title, desc) in zip(
         [col1, col2, col3, col4],
         [
-            ("🔍", "Search Agent", "Queries Tavily for 7 live web sources on your topic"),
-            ("📝", "Summarizer", "Groq LLM synthesizes raw results into structured findings"),
-            ("✅", "Fact-Checker", "Validates every claim against original source material"),
-            ("✍️", "Writer", "Composes a clean, professional report in markdown"),
+            ("01", "🔍", "Search Agent", "Queries Tavily for live web sources with adaptive depth"),
+            ("02", "📝", "Summarizer", "Groq synthesizes raw web data into clean, cited sections"),
+            ("03", "✅", "Fact-Checker", "Validates every claim and assigns reliability verdicts"),
+            ("04", "✍️", "Writer", "Compiles publication-grade executive Markdown reports"),
         ]
     ):
         with col:
             st.markdown(
-                f"<div style='background:#1e1e2e;border-radius:12px;padding:1.2rem;text-align:center;height:140px'>"
-                f"<div style='font-size:2rem'>{icon}</div>"
-                f"<strong>{title}</strong><br>"
-                f"<span style='color:#888;font-size:0.85rem'>{desc}</span>"
-                f"</div>",
+                f"""<div class="feature-card">
+                <div class="feature-header">
+                    <span class="feature-icon">{icon}</span>
+                    <span class="feature-step">STEP {step_num}</span>
+                </div>
+                <div class="feature-title">{title}</div>
+                <div class="feature-desc">{desc}</div>
+                </div>""",
                 unsafe_allow_html=True
             )
